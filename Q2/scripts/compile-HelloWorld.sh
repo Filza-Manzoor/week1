@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd contracts/circuits
+cd ../contracts/circuits
 
 mkdir HelloWorld
 
@@ -24,7 +24,7 @@ snarkjs groth16 setup HelloWorld/HelloWorld.r1cs powersOfTau28_hez_final_10.ptau
 snarkjs zkey contribute HelloWorld/circuit_0000.zkey HelloWorld/circuit_final.zkey --name="1st Contributor Name" -v -e="random text"
 snarkjs zkey export verificationkey HelloWorld/circuit_final.zkey HelloWorld/verification_key.json
 
-# generate solidity contract
+# # generate solidity contract
 snarkjs zkey export solidityverifier HelloWorld/circuit_final.zkey ../HelloWorldVerifier.sol
 
 cd ../..
