@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const fs = require("fs");
-const { groth16 } = require("snarkjs");
+const { groth16, plonk } = require("snarkjs");
 
 function unstringifyBigInts(o) {
     if ((typeof(o) == "string") && (/^[0-9]+$/.test(o) ))  {
@@ -23,12 +23,12 @@ function unstringifyBigInts(o) {
     }
 }
 
-describe("SystemOfEquations", function () {
+describe("LessThan10", function () {
     let Verifier;
     let verifier;
 
     beforeEach(async function () {
-        Verifier = await ethers.getContractFactory("SystemOfEquationsVerifier");
+        Verifier = await ethers.getContractFactory("LessThan10Verifier");
         verifier = await Verifier.deploy();
         await verifier.deployed();
     });
@@ -36,38 +36,33 @@ describe("SystemOfEquations", function () {
     it("Should return true for correct proof", async function () {
         //[assignment] Add comments to explain what each line is doing
 
-        // getting proof and public signal through the groth16 library
-        const { proof, publicSignals } = await groth16.fullProve({
-            "x": ["15","17","19"],
-            "A": [["1","1","1"],["1","2","3"],["2","-1","1"]],
-            "b": ["51", "106", "32"]
-        },
-            "contracts/bonus/SystemOfEquations/SystemOfEquations_js/SystemOfEquations.wasm","contracts/bonus/SystemOfEquations/circuit_final.zkey");
+        // This method is to create proof and public signal which will later be used in the verification process.
+        const { proof, publicSignals } = await groth16.fullProve({"in":"9"}, "contracts/circuits/LessThan10/LessThan10_js/LessThan10.wasm","contracts/circuits/LessThan10/circuit_final.zkey");
 
-        console.log(publicSignals);
+        console.log('1 =',publicSignals[0]);
 
-        // converting the return variables into bigints
+        // to conver paramter from type string to bigint
         const editedPublicSignals = unstringifyBigInts(publicSignals);
         const editedProof = unstringifyBigInts(proof);
 
-        //exporting the calldata to pass it into the smart contract function
+        // to get the paramter which will be used in the solidity smart contract function
         const calldata = await groth16.exportSolidityCallData(editedProof, editedPublicSignals);
-    
+        
         const argv = calldata.replace(/["[\]\s]/g, "").split(',').map(x => BigInt(x).toString());
     
+        // to construct 4 paramters of the verify function in the groth16 contract
         const a = [argv[0], argv[1]];
         const b = [[argv[2], argv[3]], [argv[4], argv[5]]];
         const c = [argv[6], argv[7]];
         const Input = argv.slice(8);
 
-        // executing the smart contract function to verify
         expect(await verifier.verifyProof(a, b, c, Input)).to.be.true;
     });
     it("Should return false for invalid proof", async function () {
         let a = [0, 0];
         let b = [[0, 0], [0, 0]];
         let c = [0, 0];
-        let d = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let d = [0]
         expect(await verifier.verifyProof(a, b, c, d)).to.be.false;
     });
 });
