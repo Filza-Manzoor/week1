@@ -10,6 +10,21 @@ template RangeProof(n) {
 
     component low = LessEqThan(n);
     component high = GreaterEqThan(n);
+    component isEqual = IsEqual();
 
     // [assignment] insert your code here
+
+    high.in[0] <== in;
+    high.in[1] <== range[1]; 
+  
+    low.in[0] <== in;
+    low.in[1] <== range[0];
+
+    isEqual.in[0] <== high.out;
+    isEqual.in[1] <== low.out;
+
+
+    out <== isEqual.out;
 }
+
+component main = RangeProof(32);
