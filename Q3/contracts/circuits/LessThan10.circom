@@ -3,15 +3,15 @@ pragma circom 2.0.0;
 include "../../node_modules/circomlib/circuits/comparators.circom";
 
 template LessThan10() {
-    signal input in;
-    signal output out;
+    signal input a;
+    signal output b;
 
-    component lt = LessThan(32); 
+    component less_than_10 = LessThan(32); 
 
-    lt.in[0] <== in;
-    lt.in[1] <== 10;
+    less_than_10.a[0] <== a;
+    less_than_10.a[1] <== 10;
 
-    out <== lt.out;
+    b <== less_than_10.b;
 }
 
 component main = LessThan10();
